@@ -1,4 +1,4 @@
-# dsh-usage-ledger
+# dsh-usage-ledger(Token费用统计)
 
 [![dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-blue)](https://github.com/topics/dsh-plugin)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
