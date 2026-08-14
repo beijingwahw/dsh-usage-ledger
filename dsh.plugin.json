@@ -1,0 +1,13 @@
+{
+  "id": "dsh-usage-ledger",
+  "version": "0.1.0",
+  "main": "lib/index.js",
+  "description": "Per-session token usage and cost ledger with dynamic DeepSeek official pricing (peak/off-peak aware) and daily/total budget control.",
+  "engines": {
+    "dsh": ">=0.1.0-rc.1"
+  },
+  "contributes": {
+    "tools": ["usage_report"],
+    "skills": []
+  }
+}
