@@ -1,12 +1,11 @@
 # dsh-usage-ledger
 
-DeepSeek Harness 的 Token / 用量统计与成本控制插件。按对话聚合消耗、动态跟随官方定价、支持预算拦截，并内置 Web 仪表盘。
+[![dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-blue)](https://github.com/topics/dsh-plugin)
+[![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-> A token usage & cost ledger plugin for [DeepSeek Harness](https://github.com/deepseek-ai/dsh). Per-session cost aggregation, dynamic official pricing, budget gating, and a built-in web dashboard.
+**中文** | [English](#english)
 
-[English](#features) | [中文](#功能特性)
-
----
+DeepSeek Harness 的 Token / 用量统计与成本控制插件：按对话聚合消耗、动态跟随官方定价、支持预算拦截，并内置 Web 仪表盘。
 
 ## 功能特性
 
@@ -23,7 +22,7 @@ DeepSeek Harness 的 Token / 用量统计与成本控制插件。按对话聚合
 将本仓库放入 DeepSeek Harness 的插件目录（或通过包管理器安装），Harness 会依据 `dsh.plugin.json` 与 `cordis.patch.yml` 自动加载。
 
 ```bash
-git clone https://github.com/<your-username>/dsh-usage-ledger.git
+git clone https://github.com/beijingwahw/dsh-usage-ledger.git
 cd dsh-usage-ledger
 pnpm install
 pnpm run build
@@ -110,14 +109,130 @@ src/
   types.ts      # 共享类型
 ```
 
+## 参与贡献
+
+欢迎提交 Issue 与 Pull Request。请保持改动聚焦，提交前运行 `pnpm run typecheck`。
+
 ## 许可
 
 [MIT](./LICENSE)
 
 ---
 
-<a id="features"></a>
+<a id="english"></a>
+
+# dsh-usage-ledger
+
+**[中文](#dsh-usage-ledger)** | English
+
+A token usage & cost ledger plugin for [DeepSeek Harness](https://github.com/topics/dsh-plugin): per-session cost aggregation, dynamic official pricing, budget gating, and a built-in web dashboard.
+
+## Features
+
+- **Per-session accounting**: listens to `session/event`, prices every `assistant/message` `usage` record (input / output / cache read & write tokens), and aggregates it per session, per Beijing-time day, and per lifetime, persisting everything to a ledger file.
+- **Dynamic official pricing**: periodically scrapes official pricing pages, parses and hot-reloads prices — official price changes and newly published models take effect without any code change.
+- **DeepSeek peak/off-peak**: understands the official peak/off-peak schedule and its effective date, resolving the price in force at the exact Beijing time of each call.
+- **Multi-vendor catalog**: covers DeepSeek, Zhipu GLM, Moonshot Kimi, Alibaba Qwen, ByteDance Doubao, MiniMax and Baidu ERNIE; new models are imported automatically once they appear on an official pricing page.
+- **Budget control**: daily / total / per-session budgets with a warning threshold, optionally blocking model calls through the `llm/stream` gate when exceeded.
+- **Web dashboard**: registers the `/usage-ledger` route via `dsh-host-webserver`, with usage visualization and a JSON API.
+- **User price overrides**: the `customPrices` setting can override or add prices for any model (including custom ones) and takes top priority.
+
+## Installation
+
+Drop this repository into the DeepSeek Harness plugin directory (or install it via a package manager). Harness loads it automatically through `dsh.plugin.json` and `cordis.patch.yml`.
+
+```bash
+git clone https://github.com/beijingwahw/dsh-usage-ledger.git
+cd dsh-usage-ledger
+pnpm install
+pnpm run build
+```
+
+## Configuration
+
+Mount and configure it in Harness's `cordis.yml`:
+
+```yaml
+- name: dsh-usage-ledger
+  config:
+    ledgerPath: ''            # empty = $DSH_HOME/usage-ledger.json
+    saveIntervalMs: 5000      # ledger persistence debounce
+    pricingTimeoutMs: 10000   # wall-clock budget for one pricing fetch
+```
+
+User settings in the `usage-ledger` namespace (hot-reloadable at runtime):
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `dailyBudget` | `0` | Daily cost budget (CNY); 0 disables |
+| `totalBudget` | `0` | Lifetime cost budget (CNY); 0 disables |
+| `sessionBudget` | `0` | Per-session cost budget (CNY); 0 disables |
+| `warnRatio` | `0.8` | Ratio at which budgets enter the warning state |
+| `enforceBudget` | `true` | Block model calls once any budget is exceeded |
+| `pricingUrl` | DeepSeek official page | Pricing refresh source |
+| `refreshIntervalMin` | `60` | Pricing refresh interval (minutes) |
+| `customPrices` | `{}` | Price overrides by model id (longest-prefix match) |
+
+`customPrices` example:
+
+```json
+{
+  "glm-4.6": { "inputCacheHit": 1, "inputMiss": 5, "output": 5 }
+}
+```
+
+All prices are **CNY per 1M tokens**.
+
+## Price Resolution Priority
+
+`user overrides > DeepSeek live sheet > vendor live tables > built-in catalog exact match > longest-prefix match`
+
+Per-vendor fetch channels (`fetchKind`):
+
+| Vendor | Channel |
+| --- | --- |
+| DeepSeek | Official pricing page HTML (incl. peak/off-peak table) |
+| Zhipu GLM | Prices embedded in the SPA `app.*.js` bundle + public operation API |
+| Kimi | Next.js RSC flight payload subpages |
+| Qwen | Official pricing page tables |
+| Doubao | Volcano doc-center server-side Markdown |
+| MiniMax | Official pricing page tables |
+| ERNIE | Baidu CDN Gatsby page-data |
+
+On fetch failure the last good prices are kept, so network issues never break accounting.
+
+## Provided Tool
+
+- `usage_report`: reports current usage / cost / budget status.
+
+## HTTP Endpoints
+
+- `GET /usage-ledger`: dashboard page.
+- `GET /usage-ledger/api/...`: usage and pricing JSON API.
+
+## Development
+
+```bash
+pnpm run build        # compile to lib/
+pnpm run typecheck    # type check only
+```
+
+Layout:
+
+```
+src/
+  index.ts      # plugin entry: event folding, budget gate, tool & route registration
+  ledger.ts     # usage aggregation, persistence, budget evaluation
+  pricing.ts    # pricing fetch, parsing, change detection
+  catalog.ts    # vendor metadata and built-in price catalog
+  scrapers.ts   # generic / vendor-specific pricing page parsers
+  types.ts      # shared types
+```
 
 ## Contributing
 
 Issues and pull requests are welcome. Please keep changes focused and run `pnpm run typecheck` before submitting.
+
+## License
+
+[MIT](./LICENSE)
