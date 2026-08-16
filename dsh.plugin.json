@@ -2,7 +2,7 @@
   "id": "dsh-usage-ledger",
   "version": "0.1.0",
   "main": "lib/index.js",
-  "description": "Per-session token usage and cost ledger with dynamic DeepSeek official pricing (peak/off-peak aware) and daily/total budget control.",
+  "description": "Per-session token usage and cost ledger with dynamic official pricing across seven domestic vendors (DeepSeek, Zhipu GLM, Moonshot Kimi, Alibaba Qwen, ByteDance Doubao, MiniMax, Baidu ERNIE), DeepSeek peak/off-peak awareness, automatic import of newly published models, and daily/total/per-session budget control.",
   "engines": {
     "dsh": ">=0.1.0-rc.1"
   },
