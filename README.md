@@ -19,14 +19,15 @@ DeepSeek Harness 的 Token / 用量统计与成本控制插件：按对话聚合
 
 ## 安装
 
-将本仓库放入 DeepSeek Harness 的插件目录（或通过包管理器安装），Harness 会依据 `dsh.plugin.json` 与 `cordis.patch.yml` 自动加载。
+### 一键安装
 
 ```bash
-git clone https://github.com/beijingwahw/dsh-usage-ledger.git
-cd dsh-usage-ledger
-pnpm install
-pnpm run build
+dsh plugin add beijingwahw/dsh-usage-ledger --profile web
 ```
+
+> 常用进阶命令：升级 `dsh plugin upgrade dsh-usage-ledger --profile web`；卸载 `dsh plugin remove dsh-usage-ledger --profile web`；本地路径安装 `dsh plugin add ./dsh-usage-ledger --profile web`。
+
+Harness 通过 `dsh.plugin.json` 与 `cordis.patch.yml` 自动加载插件，`lib/` 随仓库分发，无需本地构建。
 
 ## 配置
 
@@ -113,6 +114,16 @@ src/
 
 欢迎提交 Issue 与 Pull Request。请保持改动聚焦，提交前运行 `pnpm run typecheck`。
 
+从源码构建安装（贡献者 / 离线场景）：
+
+```bash
+git clone https://github.com/beijingwahw/dsh-usage-ledger.git
+cd dsh-usage-ledger
+pnpm install
+pnpm run build
+dsh plugin add ./dsh-usage-ledger --profile web
+```
+
 ## 许可
 
 [MIT](./LICENSE)
@@ -139,14 +150,15 @@ A token usage & cost ledger plugin for [DeepSeek Harness](https://github.com/top
 
 ## Installation
 
-Drop this repository into the DeepSeek Harness plugin directory (or install it via a package manager). Harness loads it automatically through `dsh.plugin.json` and `cordis.patch.yml`.
+### One-liner
 
 ```bash
-git clone https://github.com/beijingwahw/dsh-usage-ledger.git
-cd dsh-usage-ledger
-pnpm install
-pnpm run build
+dsh plugin add beijingwahw/dsh-usage-ledger --profile web
 ```
+
+> Common follow-ups: upgrade `dsh plugin upgrade dsh-usage-ledger --profile web`; uninstall `dsh plugin remove dsh-usage-ledger --profile web`; local-path install `dsh plugin add ./dsh-usage-ledger --profile web`.
+
+Harness loads it automatically through `dsh.plugin.json` and `cordis.patch.yml`. `lib/` ships in the repo — no local build step needed.
 
 ## Configuration
 
@@ -213,6 +225,9 @@ On fetch failure the last good prices are kept, so network issues never break ac
 ## Development
 
 ```bash
+git clone https://github.com/beijingwahw/dsh-usage-ledger.git
+cd dsh-usage-ledger
+pnpm install
 pnpm run build        # compile to lib/
 pnpm run typecheck    # type check only
 ```
